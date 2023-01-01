@@ -27,4 +27,5 @@ fn main() {
 
 ## License
 
-This project is dual-licensed under the Apache License 2.0 and the MIT License. You may choose either license to use this software.
+This project is dual-licensed under the <a href="LICENSE-APACHE">Apache License 2.0</a> and the <a href="LICENSE-MIT">MIT License</a>.
+You may choose either license to use this software.

@@ -5,7 +5,9 @@ edition = "2021"
 description = "Rust implementation of cryptographic hash function algorithms"
 authors = ["Dmitry Demin <dmitry.demin@outlook.com>"]
 license = "MIT OR Apache-2.0"
+readme = "README.md"
 keywords = ["crypto", "hash", "sha2", "sha256", "sha512"]
+repository = "https://github.com/dmidem/hashes"
 
 # See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
 
