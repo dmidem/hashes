@@ -1,4 +1,4 @@
-# Rust Cryptographic Hash Functions
+# Rust Implementation of Cryptographic Hash Function Algorithms
 
 This is a Rust implementation of various cryptographic hash functions. The following algorithms are currently supported:
 
