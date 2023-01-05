@@ -2,6 +2,9 @@
 
 This is a Rust implementation of various cryptographic hash functions. The following algorithms are currently supported:
 
+* djb2
+* sdbm
+
 * SHA-1
 
 * SHA-2-224
