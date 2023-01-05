@@ -44,4 +44,4 @@ macro_rules! define_hash_tests {
     };
 }
 
-pub(super) use define_hash_tests;
+pub(crate) use define_hash_tests;

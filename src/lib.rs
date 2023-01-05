@@ -1,5 +1,4 @@
 mod digest;
-mod hash;
 
 #[cfg(test)]
 mod tests;

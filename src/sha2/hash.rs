@@ -68,8 +68,7 @@ macro_rules! define_hash {
                     }),
             )
         }
-        //}
     };
 }
 
-pub(super) use define_hash;
+pub(crate) use define_hash;

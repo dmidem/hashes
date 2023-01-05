@@ -3,13 +3,14 @@
 // Test values are taken from here: https://www.di-mgt.com.au/sha_testvectors.html
 
 mod algorithm;
+pub(crate) mod hash;
 
 pub mod sha224;
 pub mod sha256;
 pub mod sha384;
 pub mod sha512;
 
-use super::{digest, hash, N_BYTE_BITS};
+use super::{digest, N_BYTE_BITS};
 
 #[cfg(test)]
 use super::tests;
