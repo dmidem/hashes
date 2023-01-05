@@ -10,16 +10,12 @@ pub trait Functions {
 }
 
 macro_rules! define_hash_algorithm {
-    //($mod:ident, $mod_args:ident) => {
-    //() => {
-    //mod $mod {
-    //use $mod_args::*;
     () => {
         use crate::digest::Digest;
 
         use super::{algorithm::Functions, hash_macros::define_hash};
 
-        pub const N_INNER_DIGEST_WORDS: usize = 8; // FIXME: 8 words are hardcoded here - is that correct?
+        pub const N_INNER_DIGEST_WORDS: usize = 8;
 
         fn create_message_schedule(chunk: [u8; N_CHUNK_BYTES]) -> [Word; N_ROUNDS] {
             pub const N_WORD_BYTES: usize = std::mem::size_of::<Word>();

@@ -1,6 +1,4 @@
-// See https://nvlpubs.nist.gov/nistpubs/FIPS/NIST.FIPS.180-4.pdf for a detailed description
-// of the algorithms.
-// Test values are taken from here: https://www.di-mgt.com.au/sha_testvectors.html
+// See https://nvlpubs.nist.gov/nistpubs/FIPS/NIST.FIPS.180-4.pdf for details of the algorithms.
 
 mod algorithm;
 

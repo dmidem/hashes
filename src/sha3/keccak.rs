@@ -1,4 +1,4 @@
-// https://keccak.team/keccak_specs_summary.html
+// See https://keccak.team/keccak_specs_summary.html for details of the algorithm.
 
 // For ρ and π steps
 const T: [(usize, usize, u32); 24] = [

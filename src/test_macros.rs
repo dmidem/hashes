@@ -1,3 +1,5 @@
+// Test values are taken from here: https://www.di-mgt.com.au/sha_testvectors.html
+
 macro_rules! define_hash_tests {
     ($small_data_results:expr, $big_data_result:expr) => {
         #[cfg(test)]
