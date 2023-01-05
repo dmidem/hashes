@@ -41,8 +41,12 @@ macro_rules! define_hash {
             Some(chunk)
         }
 
+        fn make_digest_from_inner(inner_digest: [Word; N_INNER_DIGEST_WORDS]) -> Digest {
+            Digest(inner_digest[0..N_DIGEST_WORDS].try_into().unwrap())
+        }
+
         pub fn hash(message: &[u8]) -> Digest {
-            Digest::from_inner_digest(
+            make_digest_from_inner(
                 (0..)
                     .step_by(N_CHUNK_BYTES)
                     .map_while(|chunk_offset| create_chunk(message, chunk_offset))

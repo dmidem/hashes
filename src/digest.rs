@@ -7,10 +7,6 @@ macro_rules! define_digest {
             pub const N_WORD_BYTES: usize = std::mem::size_of::<Word>();
             pub const N_DIGEST_BYTES: usize = N_DIGEST_WORDS * Self::N_WORD_BYTES;
 
-            pub fn from_inner_digest(inner_digest: [Word; N_INNER_DIGEST_WORDS]) -> Self {
-                Self(inner_digest[0..N_DIGEST_WORDS].try_into().unwrap())
-            }
-
             pub fn into_words(self) -> [Word; N_DIGEST_WORDS] {
                 self.0
             }
