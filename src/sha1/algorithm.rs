@@ -1,6 +1,6 @@
 macro_rules! define_hash_algorithm {
     () => {
-        use super::{digest::Digest, sha2::hash_macros::define_hash};
+        use crate::{digest::Digest, sha2::hash_macros::define_hash};
 
         pub const N_INNER_DIGEST_WORDS: usize = 5;
 

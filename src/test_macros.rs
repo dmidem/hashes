@@ -23,7 +23,7 @@ macro_rules! define_hash_tests {
                 assert_eq!(
                     hash(
                         "abcdefghbcdefghicdefghijdefghijkefghijklfghijklmghijklmn\
-                    hijklmnoijklmnopjklmnopqklmnopqrlmnopqrsmnopqrstnopqrstu"
+                        hijklmnoijklmnopjklmnopqklmnopqrlmnopqrsmnopqrstnopqrstu"
                             .as_bytes()
                     )
                     .into_bytes(),
