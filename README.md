@@ -2,10 +2,17 @@
 
 This is a Rust implementation of various cryptographic hash functions. The following algorithms are currently supported:
 
-* SHA-224
-* SHA-256
-* SHA-384
-* SHA-512
+* SHA-1
+
+* SHA-2-224
+* SHA-2-256
+* SHA-2-384
+* SHA-2-512
+
+* SHA-3-224
+* SHA-3-256
+* SHA-3-384
+* SHA-3-512
 
 ## Example
 
@@ -16,10 +23,11 @@ use hashes::sha2::sha256::hash;
 
 fn main() {
     assert_eq!(
-        hash("abc".as_bytes()).into_words(),
+        hash("abc".as_bytes()).into_bytes(),
         [
-            0xba7816bf, 0x8f01cfea, 0x414140de, 0x5dae2223, 0xb00361a3, 0x96177a9c, 0xb410ff61,
-            0xf20015ad
+            0xba, 0x78, 0x16, 0xbf, 0x8f, 0x01, 0xcf, 0xea, 0x41, 0x41, 0x40, 0xde, 0x5d, 0xae,
+            0x22, 0x23, 0xb0, 0x03, 0x61, 0xa3, 0x96, 0x17, 0x7a, 0x9c, 0xb4, 0x10, 0xff, 0x61,
+            0xf2, 0x00, 0x15, 0xad
         ]
     );
 }
