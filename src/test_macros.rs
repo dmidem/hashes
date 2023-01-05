@@ -4,6 +4,8 @@ macro_rules! define_hash_tests {
     ($small_data_results:expr, $big_data_result:expr) => {
         #[cfg(test)]
         mod tests {
+            use alloc::vec;
+
             use super::*;
 
             #[test]

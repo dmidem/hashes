@@ -18,7 +18,7 @@ macro_rules! define_hash_algorithm {
         pub const N_INNER_DIGEST_WORDS: usize = 8;
 
         fn create_message_schedule(chunk: [u8; N_CHUNK_BYTES]) -> [Word; N_ROUNDS] {
-            pub const N_WORD_BYTES: usize = std::mem::size_of::<Word>();
+            pub const N_WORD_BYTES: usize = core::mem::size_of::<Word>();
 
             let mut w = [0; N_ROUNDS];
 

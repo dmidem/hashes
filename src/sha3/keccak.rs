@@ -142,13 +142,7 @@ pub fn keccak<const OUTPUT_BYTE_LEN: usize>(
     // Absorb all the input blocks
     let mut last_block_size = 0;
     let mut lanes = [[0u64; 5]; 5];
-    let mut i = 0;
     input_bytes.chunks(rate_in_bytes).for_each(|block| {
-        if i % 100000 == 0 {
-            println!("#{}", i);
-        }
-        i += 1;
-
         (0..5)
             .flat_map(move |y| (0..5).map(move |x| (x, y)))
             .zip(block.chunks(8).map(|bytes| {

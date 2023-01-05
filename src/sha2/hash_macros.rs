@@ -1,12 +1,12 @@
 macro_rules! define_hash {
     () => {
-        const N_WORD_BYTES: usize = std::mem::size_of::<Word>();
+        const N_WORD_BYTES: usize = core::mem::size_of::<Word>();
         const N_DIGEST_BYTES: usize = N_DIGEST_WORDS * N_WORD_BYTES;
 
         fn create_chunk(message: &[u8], chunk_offset: usize) -> Option<[u8; N_CHUNK_BYTES]> {
             const N_BYTE_BITS: usize = 8;
 
-            const N_MESSAGE_LEN_BYTES: usize = std::mem::size_of::<MessageLen>();
+            const N_MESSAGE_LEN_BYTES: usize = core::mem::size_of::<MessageLen>();
 
             let mut chunk = [0u8; N_CHUNK_BYTES];
 

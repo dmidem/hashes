@@ -22,8 +22,14 @@ Here's an example of how to use the `sha256` hash function:
 use hashes::sha2::sha256::hash;
 
 fn main() {
+    let s = "abc";
+
+    let digest = hash(s.as_bytes());
+
+    println!("Hash of \"{}\" string is: {}", s, digest);
+
     assert_eq!(
-        hash("abc".as_bytes()).into_bytes(),
+        digest.into_bytes(),
         [
             0xba, 0x78, 0x16, 0xbf, 0x8f, 0x01, 0xcf, 0xea, 0x41, 0x41, 0x40, 0xde, 0x5d, 0xae,
             0x22, 0x23, 0xb0, 0x03, 0x61, 0xa3, 0x96, 0x17, 0x7a, 0x9c, 0xb4, 0x10, 0xff, 0x61,
@@ -32,6 +38,8 @@ fn main() {
     );
 }
 ```
+
+Enable "std" feature if you want to use Display, Debug of FromStr for the output of hash functions (i.e. for Digest struct).
 
 ## License
 
