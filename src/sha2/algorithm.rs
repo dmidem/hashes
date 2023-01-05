@@ -15,7 +15,9 @@ macro_rules! define_hash_algorithm {
     //mod $mod {
     //use $mod_args::*;
     () => {
-        use super::{algorithm::Functions, digest::Digest, hash::define_hash};
+        use crate::digest::Digest;
+
+        use super::{algorithm::Functions, hash_macros::define_hash};
 
         pub const N_INNER_DIGEST_WORDS: usize = 8; // FIXME: 8 words are hardcoded here - is that correct?
 
