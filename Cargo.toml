@@ -1,6 +1,6 @@
 [package]
 name = "hashes"
-version = "0.1.5"
+version = "0.1.6"
 edition = "2021"
 description = "Rust implementation of cryptographic hash function algorithms"
 authors = ["Dmitry Demin <dmitry.demin@outlook.com>"]
