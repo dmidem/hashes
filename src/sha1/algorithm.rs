@@ -1,6 +1,6 @@
 macro_rules! define_hash_algorithm {
     () => {
-        use super::{digest::define_digest, hash::define_hash};
+        use super::{digest::Digest, hash::define_hash};
 
         pub const N_INNER_DIGEST_WORDS: usize = 5;
 
@@ -51,7 +51,6 @@ macro_rules! define_hash_algorithm {
             ]
         }
 
-        define_digest!();
         define_hash!();
     };
 }

@@ -1,11 +1,7 @@
-use super::{digest::define_digest, Word};
+use super::{digest::Digest, keccak::keccak};
 
-pub const N_DIGEST_WORDS: usize = 4; // 256 bits
-
-define_digest!();
-
-pub fn hash(message: &[u8]) -> Digest {
-    Digest::from_bytes(super::keccak::keccak::<32>(136, message, 0x06).unwrap())
+pub fn hash(message: &[u8]) -> Digest<32> {
+    Digest::from_bytes(keccak::<32>(136, message, 0x06).unwrap())
 }
 
 #[cfg(test)]

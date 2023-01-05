@@ -1,5 +1,8 @@
 macro_rules! define_hash {
     () => {
+        const N_WORD_BYTES: usize = std::mem::size_of::<Word>();
+        const N_DIGEST_BYTES: usize = N_DIGEST_WORDS * N_WORD_BYTES;
+
         fn create_chunk(message: &[u8], chunk_offset: usize) -> Option<[u8; N_CHUNK_BYTES]> {
             use super::N_BYTE_BITS;
 
@@ -41,11 +44,21 @@ macro_rules! define_hash {
             Some(chunk)
         }
 
-        fn make_digest_from_inner(inner_digest: [Word; N_INNER_DIGEST_WORDS]) -> Digest {
-            Digest(inner_digest[0..N_DIGEST_WORDS].try_into().unwrap())
+        fn make_digest_from_inner(
+            inner_digest: [Word; N_INNER_DIGEST_WORDS],
+        ) -> Digest<N_DIGEST_BYTES> {
+            let mut bytes = [0u8; N_DIGEST_BYTES];
+
+            inner_digest
+                .map(|d| d.to_be_bytes())
+                .into_iter()
+                .zip(bytes.chunks_mut(N_WORD_BYTES))
+                .for_each(|(d, b)| b.copy_from_slice(&d));
+
+            Digest::from_bytes(bytes)
         }
 
-        pub fn hash(message: &[u8]) -> Digest {
+        pub fn hash(message: &[u8]) -> Digest<N_DIGEST_BYTES> {
             make_digest_from_inner(
                 (0..)
                     .step_by(N_CHUNK_BYTES)
