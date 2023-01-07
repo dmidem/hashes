@@ -5,6 +5,8 @@ This is a Rust implementation of various cryptographic hash functions. The follo
 * djb2
 * sdbm
 
+* MD5
+
 * SHA-1
 
 * SHA-2-224

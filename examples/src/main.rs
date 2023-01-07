@@ -22,19 +22,19 @@ fn main() {
     );
 
     println!(
-        "sha1 hash of \"{}\" string is: {}",
+        "sha-1 hash of \"{}\" string is: {}",
         s,
         sha1::hash(s.as_bytes())
     );
 
     println!(
-        "sha2-256 hash of \"{}\" string is: {}",
+        "sha-2-256 hash of \"{}\" string is: {}",
         s,
         sha2::sha256::hash(s.as_bytes())
     );
 
     println!(
-        "sha3-512 hash of \"{}\" string is: {}",
+        "sha-3-512 hash of \"{}\" string is: {}",
         s,
         sha3::sha512::hash(s.as_bytes())
     );
