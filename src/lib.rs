@@ -1,11 +1,8 @@
 #![cfg_attr(not(feature = "std"), no_std)]
 
-//#[cfg(all(not(std), test))]
-//extern crate alloc;
+mod common;
 
-mod digest;
-
-mod test_macros;
+use common::{digest, hash_macros, hash_utils, test_macros};
 
 pub mod fast;
 

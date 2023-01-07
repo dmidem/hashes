@@ -2,9 +2,6 @@
 
 mod algorithm;
 
-pub(crate) mod hash_macros;
-pub(crate) mod hash_utils;
-
 pub mod sha224;
 pub mod sha256;
 pub mod sha384;

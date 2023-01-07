@@ -1,6 +1,6 @@
 macro_rules! define_hash {
     () => {
-        use crate::sha2::hash_utils::{create_chunk, flatten};
+        use crate::hash_utils::{create_chunk, flatten};
 
         //const N_WORD_BYTES: usize = core::mem::size_of::<Word>();
         const N_DIGEST_BYTES: usize = N_DIGEST_WORDS * core::mem::size_of::<Word>();

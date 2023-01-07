@@ -11,9 +11,9 @@ pub trait Functions {
 
 macro_rules! define_hash_algorithm {
     () => {
-        use crate::digest::Digest;
+        use crate::{digest::Digest, hash_macros::define_hash};
 
-        use super::{algorithm::Functions, hash_macros::define_hash};
+        use super::algorithm::Functions;
 
         pub const N_INNER_DIGEST_WORDS: usize = 8;
         pub const N_WORD_BYTES: usize = core::mem::size_of::<Word>();
