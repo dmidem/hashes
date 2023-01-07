@@ -1,18 +1,41 @@
-use hashes::sha2::sha256::hash;
+use hashes::{fast, md5, sha1, sha2, sha3};
 
 fn main() {
     let s = "abc";
 
-    let digest = hash(s.as_bytes());
+    println!(
+        "djb2 hash of \"{}\" string is: {}",
+        s,
+        fast::djb2::hash(s.as_bytes())
+    );
 
-    println!("Hash of \"{}\" string is: {}", s, digest);
+    println!(
+        "sdbm hash of \"{}\" string is: {}",
+        s,
+        fast::sdbm::hash(s.as_bytes())
+    );
 
-    assert_eq!(
-        digest.into_bytes(),
-        [
-            0xba, 0x78, 0x16, 0xbf, 0x8f, 0x01, 0xcf, 0xea, 0x41, 0x41, 0x40, 0xde, 0x5d, 0xae,
-            0x22, 0x23, 0xb0, 0x03, 0x61, 0xa3, 0x96, 0x17, 0x7a, 0x9c, 0xb4, 0x10, 0xff, 0x61,
-            0xf2, 0x00, 0x15, 0xad
-        ]
+    println!(
+        "md5 hash of \"{}\" string is: {}",
+        s,
+        md5::hash(s.as_bytes())
+    );
+
+    println!(
+        "sha1 hash of \"{}\" string is: {}",
+        s,
+        sha1::hash(s.as_bytes())
+    );
+
+    println!(
+        "sha2-256 hash of \"{}\" string is: {}",
+        s,
+        sha2::sha256::hash(s.as_bytes())
+    );
+
+    println!(
+        "sha3-512 hash of \"{}\" string is: {}",
+        s,
+        sha3::sha512::hash(s.as_bytes())
     );
 }
