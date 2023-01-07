@@ -21,7 +21,7 @@ This is a Rust implementation of various cryptographic hash functions. The follo
 
 ## Example
 
-Here's an example of how to use the `sha256` hash function:
+Here's an example of how to use the `sha2::sha256` hash function:
 
 ```rust
 use hashes::sha2::sha256::hash;
