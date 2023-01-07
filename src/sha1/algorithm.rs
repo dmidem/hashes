@@ -3,10 +3,9 @@ macro_rules! define_hash_algorithm {
         use crate::{digest::Digest, sha2::hash_macros::define_hash};
 
         pub const N_INNER_DIGEST_WORDS: usize = 5;
+        const N_WORD_BYTES: usize = core::mem::size_of::<Word>();
 
         fn create_message_schedule(chunk: [u8; N_CHUNK_BYTES]) -> [Word; N_ROUNDS] {
-            const N_WORD_BYTES: usize = core::mem::size_of::<Word>();
-
             let mut w = [0; N_ROUNDS];
 
             w.iter_mut()
@@ -23,8 +22,10 @@ macro_rules! define_hash_algorithm {
         #[inline(always)]
         fn compute_next_digest(
             digest: [Word; N_INNER_DIGEST_WORDS],
-            w: [Word; N_ROUNDS],
+            chunk: [u8; N_CHUNK_BYTES],
         ) -> [Word; N_INNER_DIGEST_WORDS] {
+            let w = create_message_schedule(chunk);
+
             let chunk_digest = (0..N_ROUNDS).fold(digest, |[a, b, c, d, e], i| {
                 let (f, k) = match i {
                     0..=19 => ((b & c) ^ ((!b) & d), 0x5a827999),
@@ -49,6 +50,20 @@ macro_rules! define_hash_algorithm {
                 digest[3].wrapping_add(chunk_digest[3]),
                 digest[4].wrapping_add(chunk_digest[4]),
             ]
+        }
+
+        #[inline(always)]
+        fn message_len_into_bytes<const N_MESSAGE_LEN_BYTES: usize>(
+            message_len: usize,
+        ) -> [u8; N_MESSAGE_LEN_BYTES] {
+            (message_len as u128 * 8u128).to_be_bytes()[16 - N_MESSAGE_LEN_BYTES..]
+                .try_into()
+                .unwrap()
+        }
+
+        #[inline(always)]
+        fn word_into_bytes(d: Word) -> [u8; N_WORD_BYTES] {
+            d.to_be_bytes()
         }
 
         define_hash!();

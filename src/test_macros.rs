@@ -4,8 +4,6 @@ macro_rules! define_hash_tests {
     ($small_data_results:expr, $big_data_result:expr) => {
         #[cfg(test)]
         mod tests {
-            use alloc::vec;
-
             use super::*;
 
             #[test]
@@ -31,7 +29,7 @@ macro_rules! define_hash_tests {
                 );
 
                 assert_eq!(
-                    hash(&vec![0x61u8; 1000000]).into_bytes(),
+                    hash("a".repeat(1000000).as_bytes()).into_bytes(),
                     $small_data_results[4]
                 );
             }
