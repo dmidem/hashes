@@ -31,8 +31,6 @@ fn main() {
 
     let digest = hash(s.as_bytes());
 
-    println!("Hash of \"{}\" string is: {}", s, digest);
-
     assert_eq!(
         digest.into_bytes(),
         [

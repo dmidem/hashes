@@ -1,4 +1,4 @@
-#![cfg_attr(not(feature = "std"), no_std)]
+#![cfg_attr(not(any(feature = "std", doctest)), no_std)]
 
 mod common;
 
@@ -11,3 +11,5 @@ pub mod md5;
 pub mod sha1;
 pub mod sha2;
 pub mod sha3;
+
+mod test_readme;

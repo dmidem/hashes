@@ -11,7 +11,7 @@ impl<const N_BYTES: usize> Digest<N_BYTES> {
     }
 }
 
-#[cfg(feature = "std")]
+#[cfg(any(feature = "std", doctest))]
 mod with_std {
     use super::Digest;
 
