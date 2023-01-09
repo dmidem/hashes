@@ -130,7 +130,7 @@ fn keccak_f1600(state: [u8; 200]) -> [u8; 200] {
     from_lanes(keccak_f1600_on_lanes(into_lanes(state)))
 }
 
-pub fn keccak<const OUTPUT_BYTE_LEN: usize>(
+pub(crate) fn keccak<const OUTPUT_BYTE_LEN: usize>(
     rate_in_bytes: usize,
     input_bytes: &[u8],
     delimited_suffix: u8,

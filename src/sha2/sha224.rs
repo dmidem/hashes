@@ -1,13 +1,18 @@
-use super::{
-    algorithm::define_hash_algorithm,
-    sha256::{MessageLen, Word, K, N_CHUNK_BYTES, N_ROUNDS},
-};
+use super::algorithm_macros::define_hash_algorithm;
 
-pub const N_DIGEST_WORDS: usize = 7; // 224 bits
+mod args {
+    pub(crate) use super::super::{
+        sha256::args::{MessageLen, Word, K, N_CHUNK_BYTES, N_ROUNDS},
+        N_INNER_DIGEST_WORDS,
+    };
 
-pub const INITIAL_DIGEST: [Word; N_INNER_DIGEST_WORDS] = [
-    0xc1059ed8, 0x367cd507, 0x3070dd17, 0xf70e5939, 0xffc00b31, 0x68581511, 0x64f98fa7, 0xbefa4fa4,
-];
+    pub(crate) const N_DIGEST_BYTES: usize = 28; // 224 bits
+
+    pub(crate) const INITIAL_DIGEST: [Word; N_INNER_DIGEST_WORDS] = [
+        0xc1059ed8, 0x367cd507, 0x3070dd17, 0xf70e5939, 0xffc00b31, 0x68581511, 0x64f98fa7,
+        0xbefa4fa4,
+    ];
+}
 
 define_hash_algorithm!();
 

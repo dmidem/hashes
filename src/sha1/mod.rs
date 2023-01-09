@@ -1,18 +1,6 @@
 mod algorithm;
 
-use algorithm::define_hash_algorithm;
-
-pub type Word = u32;
-pub type MessageLen = u64;
-
-pub const N_DIGEST_WORDS: usize = 5; // 256 bits
-pub const N_CHUNK_BYTES: usize = 64; // 512 bits
-pub const N_ROUNDS: usize = 80;
-
-pub const INITIAL_DIGEST: [Word; N_DIGEST_WORDS] =
-    [0x67452301, 0xefcdab89, 0x98badcfe, 0x10325476, 0xc3d2e1f0];
-
-define_hash_algorithm!();
+pub use algorithm::hash;
 
 crate::test_macros::define_hash_tests!(
     [
