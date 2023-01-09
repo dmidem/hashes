@@ -1,4 +1,4 @@
-use super::algorithm_macros::define_hash_algorithm;
+use super::algorithm_macros::define_algorithm;
 
 pub(crate) mod args {
     pub(crate) use super::super::N_INNER_DIGEST_WORDS;
@@ -105,7 +105,7 @@ pub(crate) mod args {
     ];
 }
 
-define_hash_algorithm!();
+define_algorithm!();
 
 crate::test_macros::define_hash_tests!(
     [

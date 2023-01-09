@@ -1,4 +1,4 @@
-macro_rules! define_hash_algorithm {
+macro_rules! define_algorithm {
     (
     ) => {
         mod algorithm {
@@ -133,4 +133,4 @@ macro_rules! define_hash_algorithm {
     };
 }
 
-pub(super) use define_hash_algorithm;
+pub(super) use define_algorithm;
