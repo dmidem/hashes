@@ -3,7 +3,7 @@ use crate::digest::Digest;
 use super::keccak::keccak;
 
 pub fn hash(message: &[u8]) -> Digest<28> {
-    Digest::from_bytes(keccak::<28>(144, message, 0x06).unwrap())
+    Digest::from_bytes(keccak::<144, 28, 0x06>(message).unwrap())
 }
 
 crate::test_macros::define_hash_tests!(

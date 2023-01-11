@@ -55,7 +55,10 @@ const R: [u64; 24] = [
     0x8000000080008008,
 ];
 
-fn keccak_f1600_on_lanes(mut lanes: [[u64; 5]; 5]) -> [[u64; 5]; 5] {
+type Lanes = [[u64; 5]; 5];
+type State = [u8; 200];
+
+fn keccak_f1600_on_lanes(mut lanes: Lanes) -> Lanes {
     for r in R {
         // θ step
         {
@@ -94,7 +97,7 @@ fn keccak_f1600_on_lanes(mut lanes: [[u64; 5]; 5]) -> [[u64; 5]; 5] {
 }
 
 #[inline(always)]
-fn into_lanes(state: [u8; 200]) -> [[u64; 5]; 5] {
+fn into_lanes(state: State) -> Lanes {
     let mut lanes = [[0u64; 5]; 5];
 
     let mut i = 0;
@@ -110,7 +113,7 @@ fn into_lanes(state: [u8; 200]) -> [[u64; 5]; 5] {
 }
 
 #[inline(always)]
-fn from_lanes(lanes: [[u64; 5]; 5]) -> [u8; 200] {
+fn from_lanes(lanes: Lanes) -> State {
     let mut state = [0u8; 200];
 
     let mut i = 0;
@@ -126,36 +129,44 @@ fn from_lanes(lanes: [[u64; 5]; 5]) -> [u8; 200] {
 }
 
 #[inline(always)]
-fn keccak_f1600(state: [u8; 200]) -> [u8; 200] {
+fn keccak_f1600(state: State) -> State {
     from_lanes(keccak_f1600_on_lanes(into_lanes(state)))
 }
 
-pub(crate) fn keccak<const OUTPUT_BYTE_LEN: usize>(
-    rate_in_bytes: usize,
-    input_bytes: &[u8],
-    delimited_suffix: u8,
-) -> Option<[u8; OUTPUT_BYTE_LEN]> {
-    if rate_in_bytes == 0 || rate_in_bytes > 200 {
+fn xor_with_lanes(message_chunk: &[u8], mut lanes: Lanes) -> Lanes {
+    (0..5)
+        .flat_map(move |y| (0..5).map(move |x| (x, y)))
+        .zip(message_chunk.chunks(8).map(|bytes| {
+            let mut padded_bytes = [0u8; 8];
+            padded_bytes[0..bytes.len()].copy_from_slice(bytes);
+            u64::from_le_bytes(padded_bytes)
+        }))
+        .for_each(|((x, y), a)| {
+            lanes[x][y] ^= a;
+        });
+
+    lanes
+}
+
+pub(crate) fn keccak<
+    const N_CHUNK_BYTES: usize,
+    const N_DIGEST_BYTES: usize,
+    const DELIMITED_SUFFIX: u8,
+>(
+    message: &[u8],
+) -> Option<[u8; N_DIGEST_BYTES]> {
+    if N_CHUNK_BYTES == 0 || N_CHUNK_BYTES > 200 {
         return None;
     }
 
     // Absorb all the input blocks
-    let mut last_block_size = 0;
+    let mut last_chunk_size = 0;
     let mut lanes = [[0u64; 5]; 5];
-    input_bytes.chunks(rate_in_bytes).for_each(|block| {
-        (0..5)
-            .flat_map(move |y| (0..5).map(move |x| (x, y)))
-            .zip(block.chunks(8).map(|bytes| {
-                let mut padded_bytes = [0u8; 8];
-                padded_bytes[0..bytes.len()].copy_from_slice(bytes);
-                u64::from_le_bytes(padded_bytes)
-            }))
-            .for_each(|((x, y), a)| {
-                lanes[x][y] ^= a;
-            });
+    message.chunks(N_CHUNK_BYTES).for_each(|chunk| {
+        lanes = xor_with_lanes(chunk, lanes);
 
-        last_block_size = match block.len() {
-            n if n == rate_in_bytes => {
+        last_chunk_size = match chunk.len() {
+            n if n == N_CHUNK_BYTES => {
                 lanes = keccak_f1600_on_lanes(lanes);
                 0
             }
@@ -165,18 +176,19 @@ pub(crate) fn keccak<const OUTPUT_BYTE_LEN: usize>(
     let mut state = from_lanes(lanes);
 
     // Do the padding and switch to the squeezing phase
-    state[last_block_size] ^= delimited_suffix;
-    if (delimited_suffix & 0x80) != 0 && last_block_size == (rate_in_bytes - 1) {
+    // FIXME: what if last_block_size == 200 (that means N_CHUNK_BYTES is also set as 200)?
+    state[last_chunk_size] ^= DELIMITED_SUFFIX;
+    if (DELIMITED_SUFFIX & 0x80) != 0 && last_chunk_size == (N_CHUNK_BYTES - 1) {
         state = keccak_f1600(state);
     }
-    state[rate_in_bytes - 1] ^= 0x80;
+    state[N_CHUNK_BYTES - 1] ^= 0x80;
 
     // Squeeze out all the output blocks
-    let mut output_bytes = [0u8; OUTPUT_BYTE_LEN];
-    output_bytes.chunks_mut(rate_in_bytes).for_each(|block| {
+    let mut digest = [0u8; N_DIGEST_BYTES];
+    digest.chunks_mut(N_CHUNK_BYTES).for_each(|chunk| {
         state = keccak_f1600(state);
-        block.copy_from_slice(&state[0..block.len()]);
+        chunk.copy_from_slice(&state[0..chunk.len()]);
     });
 
-    Some(output_bytes)
+    Some(digest)
 }
