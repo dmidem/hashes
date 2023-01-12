@@ -1,4 +1,7 @@
-use crate::{chunking_hasher::ChunkingHasher, digest};
+use crate::{
+    digest,
+    hasher::{BufHasher, ChunkingHasher, Hasher},
+};
 
 type Word = u32;
 type MessageLen = u64;
@@ -49,12 +52,12 @@ impl ChunkingHasher<N_CHUNK_BYTES> for Algorithm {
 
     #[inline(always)]
     fn compute_next_digest(
-        digest: Self::InnerDigest,
+        digest: &Self::InnerDigest,
         chunk: [u8; N_CHUNK_BYTES],
     ) -> Self::InnerDigest {
         let w = create_message_schedule(chunk);
 
-        let chunk_digest = (0..N_ROUNDS).fold(digest, |[a, b, c, d, e], i| {
+        let chunk_digest = (0..N_ROUNDS).fold(*digest, |[a, b, c, d, e], i| {
             let (f, k) = match i {
                 0..=19 => ((b & c) ^ ((!b) & d), 0x5a827999),
                 20..=39 => (b ^ c ^ d, 0x6ed9eba1),
@@ -82,5 +85,5 @@ impl ChunkingHasher<N_CHUNK_BYTES> for Algorithm {
 }
 
 pub fn hash(message: &[u8]) -> digest::Digest<N_DIGEST_BYTES> {
-    Algorithm::hash(message)
+    BufHasher::<N_CHUNK_BYTES, Algorithm>::hash(message)
 }

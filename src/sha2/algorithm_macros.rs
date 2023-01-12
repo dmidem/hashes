@@ -10,7 +10,7 @@ macro_rules! define_algorithm {
                 },
             };
 
-            use crate::{chunking_hasher::ChunkingHasher, digest};
+            use crate::{digest, hasher::ChunkingHasher};
 
             #[inline(always)]
             fn create_message_schedule(chunk: [u8; N_CHUNK_BYTES]) -> [Word; N_ROUNDS] {
@@ -61,27 +61,28 @@ macro_rules! define_algorithm {
 
                 #[inline(always)]
                 fn compute_next_digest(
-                    digest: Self::InnerDigest,
+                    digest: &Self::InnerDigest,
                     chunk: [u8; N_CHUNK_BYTES],
                 ) -> Self::InnerDigest {
                     let w = create_message_schedule(chunk);
 
-                    let chunk_digest = (0..N_ROUNDS).fold(digest, |[a, b, c, d, e, f, g, h], i| {
-                        let s0 = <Word>::sum0(a);
-                        let s1 = <Word>::sum1(e);
-                        let maj = <Word>::maj(a, b, c);
-                        let ch = <Word>::ch(e, f, g);
+                    let chunk_digest =
+                        (0..N_ROUNDS).fold(*digest, |[a, b, c, d, e, f, g, h], i| {
+                            let s0 = <Word>::sum0(a);
+                            let s1 = <Word>::sum1(e);
+                            let maj = <Word>::maj(a, b, c);
+                            let ch = <Word>::ch(e, f, g);
 
-                        let t1 = h
-                            .wrapping_add(s1)
-                            .wrapping_add(ch)
-                            .wrapping_add(K[i])
-                            .wrapping_add(w[i]);
+                            let t1 = h
+                                .wrapping_add(s1)
+                                .wrapping_add(ch)
+                                .wrapping_add(K[i])
+                                .wrapping_add(w[i]);
 
-                        let t2 = s0.wrapping_add(maj);
+                            let t2 = s0.wrapping_add(maj);
 
-                        [t1.wrapping_add(t2), a, b, c, d.wrapping_add(t1), e, f, g]
-                    });
+                            [t1.wrapping_add(t2), a, b, c, d.wrapping_add(t1), e, f, g]
+                        });
 
                     [
                         digest[0].wrapping_add(chunk_digest[0]),
@@ -97,10 +98,10 @@ macro_rules! define_algorithm {
             }
         }
 
-        use crate::chunking_hasher::ChunkingHasher;
+        use crate::hasher::{BufHasher, Hasher};
 
         pub fn hash(message: &[u8]) -> crate::digest::Digest<{ args::N_DIGEST_BYTES }> {
-            algorithm::Algorithm::hash(message)
+            BufHasher::<{ args::N_CHUNK_BYTES }, algorithm::Algorithm>::hash(message)
         }
     };
 }

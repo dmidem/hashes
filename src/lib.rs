@@ -2,7 +2,7 @@
 
 mod common;
 
-use common::{chunking_hasher, digest, test_macros};
+use common::{digest, hasher, test_macros};
 
 pub mod fast;
 
