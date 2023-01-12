@@ -10,7 +10,7 @@ macro_rules! define_algorithm {
                 },
             };
 
-            use crate::{chunking_hasher::ChunkingHasher, digest, hash_utils};
+            use crate::{chunking_hasher::ChunkingHasher, digest};
 
             #[inline(always)]
             fn create_message_schedule(chunk: [u8; N_CHUNK_BYTES]) -> [Word; N_ROUNDS] {
@@ -56,9 +56,7 @@ macro_rules! define_algorithm {
 
                 #[inline(always)]
                 fn convert_inner_digest(inner_digest: Self::InnerDigest) -> Self::Digest {
-                    digest::Digest::from_bytes(hash_utils::flatten(
-                        inner_digest.map(|d| d.to_be_bytes()),
-                    ))
+                    digest::Digest::from_word_bytes(inner_digest.map(|d| d.to_be_bytes()))
                 }
 
                 #[inline(always)]

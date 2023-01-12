@@ -1,9 +1,28 @@
+fn flatten<const N_WORD_BYTES: usize, const N_WORDS: usize, const N_FLAT_BYTES: usize>(
+    word_bytes: [[u8; N_WORD_BYTES]; N_WORDS],
+) -> [u8; N_FLAT_BYTES] {
+    let mut flat_bytes = [0u8; N_FLAT_BYTES];
+
+    word_bytes
+        .into_iter()
+        .zip(flat_bytes.chunks_mut(N_WORD_BYTES))
+        .for_each(|(w, f)| f.copy_from_slice(&w));
+
+    flat_bytes
+}
+
 #[derive(PartialEq, Eq, Clone, Copy, Hash)]
 pub struct Digest<const N_BYTES: usize>([u8; N_BYTES]);
 
 impl<const N_BYTES: usize> Digest<N_BYTES> {
     pub fn from_bytes(bytes: [u8; N_BYTES]) -> Self {
         Self(bytes)
+    }
+
+    pub fn from_word_bytes<const N_WORD_BYTES: usize, const N_WORDS: usize>(
+        word_bytes: [[u8; N_WORD_BYTES]; N_WORDS],
+    ) -> Self {
+        Self::from_bytes(flatten(word_bytes))
     }
 
     pub fn into_bytes(self) -> [u8; N_BYTES] {
