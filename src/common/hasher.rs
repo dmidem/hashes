@@ -11,7 +11,7 @@ pub trait Hasher {
     fn hash(message: &[u8]) -> Self::Digest;
 }
 
-pub(crate) trait ChunkingHasher<const N_CHUNK_BYTES: usize> {
+pub(crate) trait HasherInner<const N_CHUNK_BYTES: usize> {
     type Digest;
     type InnerDigest;
 
@@ -29,14 +29,14 @@ pub(crate) trait ChunkingHasher<const N_CHUNK_BYTES: usize> {
 }
 
 #[derive(Clone, Copy)]
-pub(crate) struct BufHasher<const N_CHUNK_BYTES: usize, Inner: ChunkingHasher<N_CHUNK_BYTES>> {
+pub(crate) struct BufHasher<const N_CHUNK_BYTES: usize, Inner: HasherInner<N_CHUNK_BYTES>> {
     buffer: [u8; N_CHUNK_BYTES],
     buffer_index: usize,
     inner_digest: Inner::InnerDigest,
     message_len: usize,
 }
 
-impl<const N_CHUNK_BYTES: usize, Inner: ChunkingHasher<N_CHUNK_BYTES>>
+impl<const N_CHUNK_BYTES: usize, Inner: HasherInner<N_CHUNK_BYTES>>
     BufHasher<N_CHUNK_BYTES, Inner>
 {
     pub fn new() -> Self {
@@ -49,19 +49,7 @@ impl<const N_CHUNK_BYTES: usize, Inner: ChunkingHasher<N_CHUNK_BYTES>>
     }
 }
 
-impl<const N_CHUNK_BYTES: usize, Inner: ChunkingHasher<N_CHUNK_BYTES>> Hasher
-    for BufHasher<N_CHUNK_BYTES, Inner>
-{
-    type Digest = Inner::Digest;
-
-    fn hash(message: &[u8]) -> Self::Digest {
-        let mut hasher = Self::new();
-        hasher.write(message);
-        hasher.finish()
-    }
-}
-
-impl<const N_CHUNK_BYTES: usize, Inner: ChunkingHasher<N_CHUNK_BYTES>> IterativeHasher
+impl<const N_CHUNK_BYTES: usize, Inner: HasherInner<N_CHUNK_BYTES>> IterativeHasher
     for BufHasher<N_CHUNK_BYTES, Inner>
 {
     type Digest = Inner::Digest;
@@ -116,5 +104,17 @@ impl<const N_CHUNK_BYTES: usize, Inner: ChunkingHasher<N_CHUNK_BYTES>> Iterative
         }
 
         self.message_len += data.len();
+    }
+}
+
+impl<const N_CHUNK_BYTES: usize, Inner: HasherInner<N_CHUNK_BYTES>> Hasher
+    for BufHasher<N_CHUNK_BYTES, Inner>
+{
+    type Digest = Inner::Digest;
+
+    fn hash(message: &[u8]) -> Self::Digest {
+        let mut hasher = Self::new();
+        hasher.write(message);
+        hasher.finish()
     }
 }

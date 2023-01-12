@@ -1,6 +1,6 @@
 use crate::{
     digest,
-    hasher::{BufHasher, ChunkingHasher, Hasher},
+    hasher::{BufHasher, Hasher, HasherInner},
 };
 
 type Word = u32;
@@ -33,7 +33,7 @@ fn create_message_schedule(chunk: [u8; N_CHUNK_BYTES]) -> [Word; N_ROUNDS] {
 
 struct Algorithm;
 
-impl ChunkingHasher<N_CHUNK_BYTES> for Algorithm {
+impl HasherInner<N_CHUNK_BYTES> for Algorithm {
     type Digest = digest::Digest<N_DIGEST_BYTES>;
     type InnerDigest = [Word; N_INNER_DIGEST_WORDS];
 

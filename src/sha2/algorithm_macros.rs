@@ -10,7 +10,7 @@ macro_rules! define_algorithm {
                 },
             };
 
-            use crate::{digest, hasher::ChunkingHasher};
+            use crate::{digest, hasher::HasherInner};
 
             #[inline(always)]
             fn create_message_schedule(chunk: [u8; N_CHUNK_BYTES]) -> [Word; N_ROUNDS] {
@@ -39,7 +39,7 @@ macro_rules! define_algorithm {
 
             pub(super) struct Algorithm;
 
-            impl ChunkingHasher<N_CHUNK_BYTES> for Algorithm {
+            impl HasherInner<N_CHUNK_BYTES> for Algorithm {
                 type Digest = digest::Digest<N_DIGEST_BYTES>;
                 type InnerDigest = [Word; N_INNER_DIGEST_WORDS];
 

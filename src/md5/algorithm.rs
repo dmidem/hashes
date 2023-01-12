@@ -1,6 +1,6 @@
 use crate::{
     digest,
-    hasher::{BufHasher, ChunkingHasher, Hasher},
+    hasher::{BufHasher, Hasher, HasherInner},
 };
 
 type Word = u32;
@@ -59,7 +59,7 @@ fn break_chunk_into_words(chunk: [u8; N_CHUNK_BYTES]) -> [Word; N_CHUNK_WORDS] {
 
 struct Algorithm;
 
-impl ChunkingHasher<N_CHUNK_BYTES> for Algorithm {
+impl HasherInner<N_CHUNK_BYTES> for Algorithm {
     type Digest = digest::Digest<N_DIGEST_BYTES>;
     type InnerDigest = [Word; N_INNER_DIGEST_WORDS];
 
