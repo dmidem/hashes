@@ -154,10 +154,8 @@ pub(crate) fn keccak<
     const DELIMITED_SUFFIX: u8,
 >(
     message: &[u8],
-) -> Option<[u8; N_DIGEST_BYTES]> {
-    if N_CHUNK_BYTES == 0 || N_CHUNK_BYTES > 200 {
-        return None;
-    }
+) -> [u8; N_DIGEST_BYTES] {
+    assert!((N_CHUNK_BYTES) > 0 && (N_CHUNK_BYTES <= 200));
 
     // Absorb all the input blocks
     let mut last_chunk_size = 0;
@@ -190,5 +188,5 @@ pub(crate) fn keccak<
         chunk.copy_from_slice(&state[0..chunk.len()]);
     });
 
-    Some(digest)
+    digest
 }
