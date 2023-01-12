@@ -82,15 +82,13 @@ impl IntoDigest for InnerDigest {
     }
 }
 
-impl<'a> ChunkingHasher for Algorithm<'a> {
-    type Chunk = [u8; N_CHUNK_BYTES];
+impl<'a> ChunkingHasher<N_CHUNK_BYTES> for Algorithm<'a> {
     type Digest = digest::Digest<N_DIGEST_BYTES>;
     type InnerDigest = InnerDigest;
 
-    const N_CHUNK_BYTES: usize = N_CHUNK_BYTES;
     const INITIAL_DIGEST: InnerDigest = InnerDigest(INITIAL_DIGEST);
 
-    fn create_chunk(&self, chunk_offset: usize) -> Option<Self::Chunk> {
+    fn create_chunk(&self, chunk_offset: usize) -> Option<[u8; N_CHUNK_BYTES]> {
         hash_utils::create_chunk::<N_CHUNK_BYTES>(
             self.message,
             chunk_offset,
