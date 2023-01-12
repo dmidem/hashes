@@ -10,10 +10,7 @@ macro_rules! define_algorithm {
                 },
             };
 
-            use crate::{
-                chunking_hasher::{ChunkingHasher, IntoDigest},
-                digest, hash_utils,
-            };
+            use crate::{chunking_hasher::ChunkingHasher, digest, hash_utils};
 
             #[inline(always)]
             fn create_message_schedule(chunk: [u8; N_CHUNK_BYTES]) -> [Word; N_ROUNDS] {
@@ -40,23 +37,13 @@ macro_rules! define_algorithm {
                 w
             }
 
-            pub struct InnerDigest([Word; N_INNER_DIGEST_WORDS]);
-
-            impl IntoDigest for InnerDigest {
-                type Digest = digest::Digest<N_DIGEST_BYTES>;
-
-                fn into_digest(self) -> digest::Digest<N_DIGEST_BYTES> {
-                    digest::Digest::from_bytes(hash_utils::flatten(self.0.map(|d| d.to_be_bytes())))
-                }
-            }
-
             pub(super) struct Algorithm;
 
             impl ChunkingHasher<N_CHUNK_BYTES> for Algorithm {
                 type Digest = digest::Digest<N_DIGEST_BYTES>;
-                type InnerDigest = InnerDigest;
+                type InnerDigest = [Word; N_INNER_DIGEST_WORDS];
 
-                const INITIAL_DIGEST: InnerDigest = InnerDigest(INITIAL_DIGEST);
+                const INITIAL_DIGEST: Self::InnerDigest = INITIAL_DIGEST;
                 const N_MESSAGE_LEN_BYTES: usize = core::mem::size_of::<MessageLen>();
 
                 #[inline(always)]
@@ -68,12 +55,17 @@ macro_rules! define_algorithm {
                 }
 
                 #[inline(always)]
-                fn compute_next_digest(
-                    digest: InnerDigest,
-                    chunk: [u8; N_CHUNK_BYTES],
-                ) -> InnerDigest {
-                    let digest = digest.0;
+                fn convert_inner_digest(inner_digest: Self::InnerDigest) -> Self::Digest {
+                    digest::Digest::from_bytes(hash_utils::flatten(
+                        inner_digest.map(|d| d.to_be_bytes()),
+                    ))
+                }
 
+                #[inline(always)]
+                fn compute_next_digest(
+                    digest: Self::InnerDigest,
+                    chunk: [u8; N_CHUNK_BYTES],
+                ) -> Self::InnerDigest {
                     let w = create_message_schedule(chunk);
 
                     let chunk_digest = (0..N_ROUNDS).fold(digest, |[a, b, c, d, e, f, g, h], i| {
@@ -93,7 +85,7 @@ macro_rules! define_algorithm {
                         [t1.wrapping_add(t2), a, b, c, d.wrapping_add(t1), e, f, g]
                     });
 
-                    InnerDigest([
+                    [
                         digest[0].wrapping_add(chunk_digest[0]),
                         digest[1].wrapping_add(chunk_digest[1]),
                         digest[2].wrapping_add(chunk_digest[2]),
@@ -102,7 +94,7 @@ macro_rules! define_algorithm {
                         digest[5].wrapping_add(chunk_digest[5]),
                         digest[6].wrapping_add(chunk_digest[6]),
                         digest[7].wrapping_add(chunk_digest[7]),
-                    ])
+                    ]
                 }
             }
         }

@@ -1,7 +1,4 @@
-use crate::{
-    chunking_hasher::{ChunkingHasher, IntoDigest},
-    digest, hash_utils,
-};
+use crate::{chunking_hasher::ChunkingHasher, digest, hash_utils};
 
 type Word = u32;
 type MessageLen = u64;
@@ -13,16 +10,6 @@ const N_ROUNDS: usize = 80;
 
 const INITIAL_DIGEST: [Word; N_INNER_DIGEST_WORDS] =
     [0x67452301, 0xefcdab89, 0x98badcfe, 0x10325476, 0xc3d2e1f0];
-
-struct InnerDigest([Word; N_INNER_DIGEST_WORDS]);
-
-impl IntoDigest for InnerDigest {
-    type Digest = digest::Digest<N_DIGEST_BYTES>;
-
-    fn into_digest(self) -> digest::Digest<N_DIGEST_BYTES> {
-        digest::Digest::from_bytes(hash_utils::flatten(self.0.map(|d| d.to_be_bytes())))
-    }
-}
 
 #[inline(always)]
 fn create_message_schedule(chunk: [u8; N_CHUNK_BYTES]) -> [Word; N_ROUNDS] {
@@ -45,9 +32,9 @@ struct Algorithm;
 
 impl ChunkingHasher<N_CHUNK_BYTES> for Algorithm {
     type Digest = digest::Digest<N_DIGEST_BYTES>;
-    type InnerDigest = InnerDigest;
+    type InnerDigest = [Word; N_INNER_DIGEST_WORDS];
 
-    const INITIAL_DIGEST: InnerDigest = InnerDigest(INITIAL_DIGEST);
+    const INITIAL_DIGEST: Self::InnerDigest = INITIAL_DIGEST;
     const N_MESSAGE_LEN_BYTES: usize = core::mem::size_of::<MessageLen>();
 
     #[inline(always)]
@@ -56,9 +43,15 @@ impl ChunkingHasher<N_CHUNK_BYTES> for Algorithm {
     }
 
     #[inline(always)]
-    fn compute_next_digest(digest: InnerDigest, chunk: [u8; N_CHUNK_BYTES]) -> InnerDigest {
-        let digest = digest.0;
+    fn convert_inner_digest(inner_digest: Self::InnerDigest) -> Self::Digest {
+        digest::Digest::from_bytes(hash_utils::flatten(inner_digest.map(|d| d.to_be_bytes())))
+    }
 
+    #[inline(always)]
+    fn compute_next_digest(
+        digest: Self::InnerDigest,
+        chunk: [u8; N_CHUNK_BYTES],
+    ) -> Self::InnerDigest {
         let w = create_message_schedule(chunk);
 
         let chunk_digest = (0..N_ROUNDS).fold(digest, |[a, b, c, d, e], i| {
@@ -78,13 +71,13 @@ impl ChunkingHasher<N_CHUNK_BYTES> for Algorithm {
             [t, a, b.rotate_left(30), c, d]
         });
 
-        InnerDigest([
+        [
             digest[0].wrapping_add(chunk_digest[0]),
             digest[1].wrapping_add(chunk_digest[1]),
             digest[2].wrapping_add(chunk_digest[2]),
             digest[3].wrapping_add(chunk_digest[3]),
             digest[4].wrapping_add(chunk_digest[4]),
-        ])
+        ]
     }
 }
 

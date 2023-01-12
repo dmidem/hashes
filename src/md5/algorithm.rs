@@ -1,7 +1,4 @@
-use crate::{
-    chunking_hasher::{ChunkingHasher, IntoDigest},
-    digest, hash_utils,
-};
+use crate::{chunking_hasher::ChunkingHasher, digest, hash_utils};
 
 type Word = u32;
 type MessageLen = u64;
@@ -57,23 +54,13 @@ fn break_chunk_into_words(chunk: [u8; N_CHUNK_BYTES]) -> [Word; N_CHUNK_WORDS] {
     m
 }
 
-struct InnerDigest([Word; N_INNER_DIGEST_WORDS]);
-
-impl IntoDigest for InnerDigest {
-    type Digest = digest::Digest<N_DIGEST_BYTES>;
-
-    fn into_digest(self) -> digest::Digest<N_DIGEST_BYTES> {
-        digest::Digest::from_bytes(hash_utils::flatten(self.0.map(|d| d.to_le_bytes())))
-    }
-}
-
 struct Algorithm;
 
 impl ChunkingHasher<N_CHUNK_BYTES> for Algorithm {
     type Digest = digest::Digest<N_DIGEST_BYTES>;
-    type InnerDigest = InnerDigest;
+    type InnerDigest = [Word; N_INNER_DIGEST_WORDS];
 
-    const INITIAL_DIGEST: InnerDigest = InnerDigest(INITIAL_DIGEST);
+    const INITIAL_DIGEST: Self::InnerDigest = INITIAL_DIGEST;
     const N_MESSAGE_LEN_BYTES: usize = core::mem::size_of::<MessageLen>();
 
     #[inline(always)]
@@ -82,9 +69,15 @@ impl ChunkingHasher<N_CHUNK_BYTES> for Algorithm {
     }
 
     #[inline(always)]
-    fn compute_next_digest(digest: InnerDigest, chunk: [u8; N_CHUNK_BYTES]) -> InnerDigest {
-        let digest = digest.0;
+    fn convert_inner_digest(inner_digest: Self::InnerDigest) -> Self::Digest {
+        digest::Digest::from_bytes(hash_utils::flatten(inner_digest.map(|d| d.to_le_bytes())))
+    }
 
+    #[inline(always)]
+    fn compute_next_digest(
+        digest: Self::InnerDigest,
+        chunk: [u8; N_CHUNK_BYTES],
+    ) -> Self::InnerDigest {
         let m = break_chunk_into_words(chunk);
 
         let chunk_digest = (0..N_ROUNDS).fold(digest, |[a, b, c, d], i| {
@@ -100,12 +93,12 @@ impl ChunkingHasher<N_CHUNK_BYTES> for Algorithm {
             [d, b.wrapping_add(f.rotate_left(s(i))), b, c]
         });
 
-        InnerDigest([
+        [
             digest[0].wrapping_add(chunk_digest[0]),
             digest[1].wrapping_add(chunk_digest[1]),
             digest[2].wrapping_add(chunk_digest[2]),
             digest[3].wrapping_add(chunk_digest[3]),
-        ])
+        ]
     }
 }
 
