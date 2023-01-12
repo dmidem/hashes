@@ -13,12 +13,11 @@ const N_ROUNDS: usize = 64;
 
 const N_WORD_BYTES: usize = core::mem::size_of::<Word>();
 const N_CHUNK_WORDS: usize = N_CHUNK_BYTES / N_WORD_BYTES;
-const N_MESSAGE_LEN_BYTES: usize = core::mem::size_of::<MessageLen>();
 
 const INITIAL_DIGEST: [Word; N_INNER_DIGEST_WORDS] =
     [0x67452301, 0xefcdab89, 0x98badcfe, 0x10325476];
 
-fn s(round: usize) -> u32 {
+fn s(round: usize) -> Word {
     match round {
         0..=15 => [7, 12, 17, 22, 7, 12, 17, 22, 7, 12, 17, 22, 7, 12, 17, 22][round],
         16..=31 => [5, 9, 14, 20, 5, 9, 14, 20, 5, 9, 14, 20, 5, 9, 14, 20][round - 16],
@@ -27,7 +26,7 @@ fn s(round: usize) -> u32 {
     }
 }
 
-fn k(round: usize) -> u32 {
+fn k(round: usize) -> Word {
     match round {
         0..=3 => [0xd76aa478, 0xe8c7b756, 0x242070db, 0xc1bdceee][round],
         4..=7 => [0xf57c0faf, 0x4787c62a, 0xa8304613, 0xfd469501][round - 4],
@@ -49,27 +48,13 @@ fn k(round: usize) -> u32 {
 }
 
 fn break_chunk_into_words(chunk: [u8; N_CHUNK_BYTES]) -> [Word; N_CHUNK_WORDS] {
-    let mut m = [0; 16];
+    let mut m = [0; N_CHUNK_WORDS];
 
     m.iter_mut()
         .zip(chunk.chunks(N_WORD_BYTES))
         .for_each(|(wi, wi_bytes)| *wi = Word::from_le_bytes(wi_bytes.try_into().unwrap()));
 
     m
-}
-
-struct Algorithm<'a> {
-    message: &'a [u8],
-    message_len_bytes: [u8; N_MESSAGE_LEN_BYTES],
-}
-
-impl<'a> Algorithm<'a> {
-    fn new(message: &'a [u8]) -> Self {
-        Self {
-            message,
-            message_len_bytes: (message.len() as u64 * 8u64).to_le_bytes(),
-        }
-    }
 }
 
 struct InnerDigest([Word; N_INNER_DIGEST_WORDS]);
@@ -82,22 +67,22 @@ impl IntoDigest for InnerDigest {
     }
 }
 
-impl<'a> ChunkingHasher<N_CHUNK_BYTES> for Algorithm<'a> {
+struct Algorithm;
+
+impl ChunkingHasher<N_CHUNK_BYTES> for Algorithm {
     type Digest = digest::Digest<N_DIGEST_BYTES>;
     type InnerDigest = InnerDigest;
 
     const INITIAL_DIGEST: InnerDigest = InnerDigest(INITIAL_DIGEST);
+    const N_MESSAGE_LEN_BYTES: usize = core::mem::size_of::<MessageLen>();
 
-    fn create_chunk(&self, chunk_offset: usize) -> Option<[u8; N_CHUNK_BYTES]> {
-        hash_utils::create_chunk::<N_CHUNK_BYTES>(
-            self.message,
-            chunk_offset,
-            &self.message_len_bytes,
-        )
+    #[inline(always)]
+    fn emit_message_len_bytes(message_len: usize, buffer: &mut [u8]) {
+        buffer.copy_from_slice(&(message_len as u64 * 8u64).to_le_bytes());
     }
 
     #[inline(always)]
-    fn compute_next_digest(&self, digest: InnerDigest, chunk: [u8; N_CHUNK_BYTES]) -> InnerDigest {
+    fn compute_next_digest(digest: InnerDigest, chunk: [u8; N_CHUNK_BYTES]) -> InnerDigest {
         let digest = digest.0;
 
         let m = break_chunk_into_words(chunk);
@@ -125,5 +110,5 @@ impl<'a> ChunkingHasher<N_CHUNK_BYTES> for Algorithm<'a> {
 }
 
 pub fn hash(message: &[u8]) -> digest::Digest<N_DIGEST_BYTES> {
-    Algorithm::new(message).hash()
+    Algorithm::hash(message)
 }

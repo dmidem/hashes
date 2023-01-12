@@ -15,50 +15,32 @@ macro_rules! define_algorithm {
                 digest, hash_utils,
             };
 
-            const N_MESSAGE_LEN_BYTES: usize = core::mem::size_of::<MessageLen>();
-            const N_WORD_BYTES: usize = core::mem::size_of::<Word>();
+            #[inline(always)]
+            fn create_message_schedule(chunk: [u8; N_CHUNK_BYTES]) -> [Word; N_ROUNDS] {
+                const N_WORD_BYTES: usize = core::mem::size_of::<Word>();
 
-            pub(crate) struct Algorithm<'a> {
-                message: &'a [u8],
-                message_len_bytes: [u8; N_MESSAGE_LEN_BYTES],
-            }
+                let mut w = [0; N_ROUNDS];
 
-            impl<'a> Algorithm<'a> {
-                pub(crate) fn new(message: &'a [u8]) -> Self {
-                    Self {
-                        message,
-                        message_len_bytes: (message.len() as u128 * 8u128).to_be_bytes()
-                            [16 - N_MESSAGE_LEN_BYTES..]
-                            .try_into()
-                            .unwrap(),
-                    }
-                }
-
-                #[inline(always)]
-                fn create_message_schedule(chunk: [u8; N_CHUNK_BYTES]) -> [Word; N_ROUNDS] {
-                    let mut w = [0; N_ROUNDS];
-
-                    w.iter_mut()
-                        .zip(chunk.chunks(N_WORD_BYTES))
-                        .for_each(|(wi, wi_bytes)| {
-                            *wi = <Word>::from_be_bytes(wi_bytes.try_into().unwrap())
-                        });
-
-                    (16..N_ROUNDS).for_each(|i| {
-                        let s0 = <Word>::sigma0(w[i - 15]);
-                        let s1 = <Word>::sigma1(w[i - 2]);
-
-                        w[i] = w[i - 16]
-                            .wrapping_add(s0)
-                            .wrapping_add(w[i - 7])
-                            .wrapping_add(s1)
+                w.iter_mut()
+                    .zip(chunk.chunks(N_WORD_BYTES))
+                    .for_each(|(wi, wi_bytes)| {
+                        *wi = <Word>::from_be_bytes(wi_bytes.try_into().unwrap())
                     });
 
-                    w
-                }
+                (16..N_ROUNDS).for_each(|i| {
+                    let s0 = <Word>::sigma0(w[i - 15]);
+                    let s1 = <Word>::sigma1(w[i - 2]);
+
+                    w[i] = w[i - 16]
+                        .wrapping_add(s0)
+                        .wrapping_add(w[i - 7])
+                        .wrapping_add(s1)
+                });
+
+                w
             }
 
-            pub(crate) struct InnerDigest([Word; N_INNER_DIGEST_WORDS]);
+            pub struct InnerDigest([Word; N_INNER_DIGEST_WORDS]);
 
             impl IntoDigest for InnerDigest {
                 type Digest = digest::Digest<N_DIGEST_BYTES>;
@@ -68,29 +50,31 @@ macro_rules! define_algorithm {
                 }
             }
 
-            impl<'a> ChunkingHasher<N_CHUNK_BYTES> for Algorithm<'a> {
+            pub(super) struct Algorithm;
+
+            impl ChunkingHasher<N_CHUNK_BYTES> for Algorithm {
                 type Digest = digest::Digest<N_DIGEST_BYTES>;
                 type InnerDigest = InnerDigest;
 
                 const INITIAL_DIGEST: InnerDigest = InnerDigest(INITIAL_DIGEST);
+                const N_MESSAGE_LEN_BYTES: usize = core::mem::size_of::<MessageLen>();
 
-                fn create_chunk(&self, chunk_offset: usize) -> Option<[u8; N_CHUNK_BYTES]> {
-                    hash_utils::create_chunk::<N_CHUNK_BYTES>(
-                        self.message,
-                        chunk_offset,
-                        &self.message_len_bytes,
-                    )
+                #[inline(always)]
+                fn emit_message_len_bytes(message_len: usize, buffer: &mut [u8]) {
+                    buffer.copy_from_slice(
+                        &(message_len as u128 * 8u128).to_be_bytes()
+                            [16 - Self::N_MESSAGE_LEN_BYTES..],
+                    );
                 }
 
                 #[inline(always)]
                 fn compute_next_digest(
-                    &self,
                     digest: InnerDigest,
                     chunk: [u8; N_CHUNK_BYTES],
                 ) -> InnerDigest {
                     let digest = digest.0;
 
-                    let w = Self::create_message_schedule(chunk);
+                    let w = create_message_schedule(chunk);
 
                     let chunk_digest = (0..N_ROUNDS).fold(digest, |[a, b, c, d, e, f, g, h], i| {
                         let s0 = <Word>::sum0(a);
@@ -126,7 +110,7 @@ macro_rules! define_algorithm {
         use crate::chunking_hasher::ChunkingHasher;
 
         pub fn hash(message: &[u8]) -> crate::digest::Digest<{ args::N_DIGEST_BYTES }> {
-            algorithm::Algorithm::new(message).hash()
+            algorithm::Algorithm::hash(message)
         }
     };
 }
